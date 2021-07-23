@@ -31,7 +31,7 @@ BUILD_SUFFIX ?=
 SERIAL_DEVICE   ?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
 
 # Flash size (KB).  Some low-end chips actually have more flash than advertised, use this to override.
-FLASH_SIZE ?=
+FLASH_SIZE ?= 2
 
 ## V                 : Set verbosity level based on the V= parameter
 ##                     V=0 Low
@@ -110,7 +110,7 @@ ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
 $(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS). Have you prepared a valid target.mk?)
 endif
 
-ifeq ($(filter $(TARGET),$(F1_TARGETS) $(F3_TARGETS) $(F4_TARGETS) $(F7_TARGETS)),)
+ifeq ($(filter $(TARGET),$(F1_TARGETS) $(F3_TARGETS) $(F4_TARGETS) $(F7_TARGETS) $(SITL_TARGETS)),)
 $(error Target '$(TARGET)' has not specified a valid STM group, must be one of F1, F3, F405, F411, F427 or F7x. Have you prepared a valid target.mk?)
 endif
 
@@ -120,6 +120,9 @@ else ifeq ($(TARGET),$(filter $(TARGET), $(F4_TARGETS)))
 TARGET_MCU := STM32F4
 else ifeq ($(TARGET),$(filter $(TARGET), $(F7_TARGETS)))
 TARGET_MCU := STM32F7
+else ifeq ($(TARGET),$(filter $(TARGET), $(SITL_TARGETS)))
+TARGET_MCU := SITL
+SIMULATOR_BUILD = yes
 else ifeq ($(TARGET),$(filter $(TARGET), $(F1_TARGETS)))
 TARGET_MCU := STM32F1
 else

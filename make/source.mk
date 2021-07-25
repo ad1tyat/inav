@@ -247,6 +247,12 @@ TARGET_SRC += \
             io/asyncfatfs/fat_standard.c
 endif
 
+
+ifeq ($(SIMULATOR_BUILD),yes)
+TARGET_FLAGS := -DSIMULATOR_BUILD $(TARGET_FLAGS)
+endif
+
+
 ifneq ($(filter VCP,$(FEATURES)),)
 TARGET_SRC += $(VCP_SRC)
 endif

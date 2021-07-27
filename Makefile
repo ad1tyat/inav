@@ -31,7 +31,7 @@ BUILD_SUFFIX ?=
 SERIAL_DEVICE   ?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
 
 # Flash size (KB).  Some low-end chips actually have more flash than advertised, use this to override.
-FLASH_SIZE ?= 2
+FLASH_SIZE ?= 
 
 ## V                 : Set verbosity level based on the V= parameter
 ##                     V=0 Low

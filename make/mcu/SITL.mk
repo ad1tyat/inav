@@ -60,6 +60,21 @@ LD_FLAGS     += \
               -static-libgcc
 endif
 
+
+
+ifeq ($(TARGET),$(filter $(TARGET), $(F411_TARGETS)))
+EXCLUDES        += stm32f4xx_fsmc.c
+TARGET_FLASH    := 512
+else ifeq ($(TARGET),$(filter $(TARGET), $(F446_TARGETS)))
+EXCLUDES        += stm32f4xx_fsmc.c
+TARGET_FLASH    := 512
+else ifeq ($(TARGET),$(filter $(TARGET), $(F427_TARGETS)))
+EXCLUDES        += stm32f4xx_fsmc.c
+TARGET_FLASH    := 1024
+else ifeq ($(TARGET),$(filter $(TARGET), $(SITL_TARGETS)))
+TARGET_FLASH    := 2048
+endif
+
 ifneq ($(DEBUG),GDB)
 OPTIMISE_DEFAULT    := -Ofast
 OPTIMISE_SPEED      := -Ofast

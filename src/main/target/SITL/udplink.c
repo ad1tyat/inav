@@ -12,8 +12,6 @@
 
 #include "udplink.h"
 
-#include "target.h"
-
 int udpInit(udpLink_t* link, const char* addr, int port, bool isServer) {
     int one = 1;
 
@@ -31,8 +29,7 @@ int udpInit(udpLink_t* link, const char* addr, int port, bool isServer) {
     link->port = port;
 
     if (addr == NULL) {
-        link->si.sin_addr.s_addr = htonl(INADDR_ANY); // When INADDR_ANY is specified in the bind call, 
-                                                      // the socket will be bound to all local interfaces.
+        link->si.sin_addr.s_addr = htonl(INADDR_ANY);
     }else{
         link->si.sin_addr.s_addr = inet_addr(addr);
     }
@@ -41,9 +38,6 @@ int udpInit(udpLink_t* link, const char* addr, int port, bool isServer) {
         if (bind(link->fd, (const struct sockaddr *)&link->si, sizeof(link->si)) == -1) {
             return -1;
         }
-#if defined(SITL_DEBUG)
-        printf("UDP server is up at %s port %d!\n", addr,port);
-#endif
     }
     return 0;
 }
@@ -65,9 +59,7 @@ int udpRecv(udpLink_t* link, void* data, size_t size, uint32_t timeout_ms) {
     if (select(link->fd+1, &fds, NULL, NULL, &tv) != 1) {
         return -1;
     }
-#if defined(SITL_DEBUG)
-    printf("Got one udp packet!\n");
-#endif
+
     socklen_t len;
     int ret;
     ret = recvfrom(link->fd, data, size, 0, (struct sockaddr *)&link->recv, &len);

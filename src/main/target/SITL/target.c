@@ -31,7 +31,6 @@
 
 #include "drivers/io.h"
 #include "drivers/dma.h"
-#include "drivers/motor.h"
 #include "drivers/serial.h"
 #include "drivers/serial_tcp.h"
 #include "drivers/system.h"
@@ -46,18 +45,15 @@ const timerHardware_t timerHardware[1]; // unused
 #include "flight/imu.h"
 
 #include "config/feature.h"
-#include "config/config.h"
+#include "fc/config.h"
 #include "scheduler/scheduler.h"
 
 #include "pg/rx.h"
-#include "pg/motor.h"
 
 #include "rx/rx.h"
 
 #include "dyad.h"
 #include "target/SITL/udplink.h"
-
-uint32_t SystemCoreClock;
 
 static fdm_packet fdmPkt;
 static servo_packet pwmPkt;
@@ -80,12 +76,7 @@ int lockMainPID(void) {
 #define ACC_SCALE (256 / 9.80665)
 #define GYRO_SCALE (16.4)
 void sendMotorUpdate() {
-    uint8_t n;
-    n = udpSend(&pwmLink, &pwmPkt, sizeof(servo_packet));
-#if defined(SITL_DEBUG)    
-    printf("Sent %d bytes!\n", n);
-    printf("Motor PWM values: [%f, %f, %f, %f]\n", pwmPkt.motor_speed[0], pwmPkt.motor_speed[1], pwmPkt.motor_speed[2], pwmPkt.motor_speed[3]);
-#endif
+    udpSend(&pwmLink, &pwmPkt, sizeof(servo_packet));
 }
 void updateState(const fdm_packet* pkt) {
     static double last_timestamp = 0; // in seconds
@@ -100,9 +91,6 @@ void updateState(const fdm_packet* pkt) {
         last_timestamp = pkt->timestamp;
         last_realtime = realtime_now;
         sendMotorUpdate();
-#if defined(SITL_DEBUG)
-        printf("MotorUpdate sent!\n");
-#endif
         return;
     }
 
@@ -124,7 +112,7 @@ void updateState(const fdm_packet* pkt) {
     fakeGyroSet(fakeGyroDev, x, y, z);
 //    printf("[gyr]%lf,%lf,%lf\n", pkt->imu_angular_velocity_rpy[0], pkt->imu_angular_velocity_rpy[1], pkt->imu_angular_velocity_rpy[2]);
 
-#if !defined(USE_IMU_CALC)
+#if defined(SKIP_IMU_CALC)
 #if defined(SET_IMU_FROM_EULER)
     // set from Euler
     double qw = pkt->imu_orientation_quat[0];
@@ -167,9 +155,7 @@ void updateState(const fdm_packet* pkt) {
         timeval_sub(&out_ts, &now_ts, &last_ts);
         simRate = deltaSim / (out_ts.tv_sec + 1e-9*out_ts.tv_nsec);
     }
-#if defined(SITL_DEBUG)
-    printf("simRate = %lf, millis64 = %lu, millis64_real = %lu, deltaSim = %lf\n", simRate, millis64(), millis64_real(), deltaSim*1e6);
-#endif
+//    printf("simRate = %lf, millis64 = %lu, millis64_real = %lu, deltaSim = %lf\n", simRate, millis64(), millis64_real(), deltaSim*1e6);
 
     last_timestamp = pkt->timestamp;
     last_realtime = micros64_real();
@@ -191,16 +177,9 @@ static void* udpThread(void* data) {
     while (workerRunning) {
         n = udpRecv(&stateLink, &fdmPkt, sizeof(fdm_packet), 100);
         if (n == sizeof(fdm_packet)) {
-#if defined(SITL_DEBUG)
-            printf("[data]new fdm %d\n", n);
-#endif
+//            printf("[data]new fdm %d\n", n);
             updateState(&fdmPkt);
-        } 
-#if defined(SITL_DEBUG)
-        else {
-            printf("Received wrong state packet size %d instead of %d!\n", n, (int)sizeof(fdm_packet));
         }
-#endif
     }
 
     printf("udpThread end!!\n");
@@ -211,8 +190,8 @@ static void* tcpThread(void* data) {
     UNUSED(data);
 
     dyad_init();
-    dyad_setTickInterval(SITL_TICK_INTERVAL);
-    dyad_setUpdateTimeout((SITL_UPDATE_TIMEOUT));
+    dyad_setTickInterval(0.2f);
+    dyad_setUpdateTimeout(0.5f);
 
     while (workerRunning) {
         dyad_update();
@@ -231,6 +210,7 @@ void systemInit(void) {
     printf("[system]Init...\n");
 
     SystemCoreClock = 500 * 1e6; // fake 500MHz
+    FLASH_Unlock();
 
     if (pthread_mutex_init(&updateLock, NULL) != 0) {
         printf("Create updateLock error!\n");
@@ -248,10 +228,10 @@ void systemInit(void) {
         exit(1);
     }
 
-    ret = udpInit(&pwmLink, SIM_PWM_IP, SIM_PWM_PORT, false);
-    printf("init PwmOut UDP link...%d\n", ret);
+    ret = udpInit(&pwmLink, "127.0.0.1", 9002, false);
+    printf("init PwnOut UDP link...%d\n", ret);
 
-    ret = udpInit(&stateLink, SIM_STATE_IP, SIM_STATE_PORT, true);
+    ret = udpInit(&stateLink, NULL, 9003, true);
     printf("start UDP server...%d\n", ret);
 
     ret = pthread_create(&udpWorker, NULL, udpThread, NULL);
@@ -271,9 +251,7 @@ void systemReset(void){
     pthread_join(udpWorker, NULL);
     exit(0);
 }
-void systemResetToBootloader(bootloaderRequestType_e requestType) {
-    UNUSED(requestType);
-
+void systemResetToBootloader(void) {
     printf("[system]ResetToBootloader!\n");
     workerRunning = false;
     pthread_join(tcpWorker, NULL);
@@ -398,13 +376,26 @@ int timeval_sub(struct timespec *result, struct timespec *x, struct timespec *y)
 
 
 // PWM part
-pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
+static bool pwmMotorsEnabled = false;
+static pwmOutputPort_t motors[MAX_SUPPORTED_MOTORS];
 static pwmOutputPort_t servos[MAX_SUPPORTED_SERVOS];
 
 // real value to send
 static int16_t motorsPwm[MAX_SUPPORTED_MOTORS];
 static int16_t servosPwm[MAX_SUPPORTED_SERVOS];
 static int16_t idlePulse;
+
+void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t _idlePulse, uint8_t motorCount) {
+    UNUSED(motorConfig);
+    UNUSED(motorCount);
+
+    idlePulse = _idlePulse;
+
+    for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
+        motors[motorIndex].enabled = true;
+    }
+    pwmMotorsEnabled = true;
+}
 
 void servoDevInit(const servoDevConfig_t *servoConfig) {
     UNUSED(servoConfig);
@@ -413,60 +404,39 @@ void servoDevInit(const servoDevConfig_t *servoConfig) {
     }
 }
 
-static motorDevice_t motorPwmDevice; // Forward
-
 pwmOutputPort_t *pwmGetMotors(void) {
     return motors;
 }
 
-static float pwmConvertFromExternal(uint16_t externalValue)
-{
-    return (float)externalValue;
+void pwmEnableMotors(void) {
+    pwmMotorsEnabled = true;
 }
 
-static uint16_t pwmConvertToExternal(float motorValue)
-{
-    return (uint16_t)motorValue;
+bool pwmAreMotorsEnabled(void) {
+    return pwmMotorsEnabled;
 }
 
-static void pwmDisableMotors(void)
+bool isMotorProtocolDshot(void)
 {
-    motorPwmDevice.enabled = false;
+    return false;
 }
 
-static bool pwmEnableMotors(void)
-{
-    motorPwmDevice.enabled = true;
-
-    return true;
-}
-
-static void pwmWriteMotor(uint8_t index, float value)
-{
+void pwmWriteMotor(uint8_t index, float value) {
     motorsPwm[index] = value - idlePulse;
 }
 
-static void pwmWriteMotorInt(uint8_t index, uint16_t value)
-{
-    pwmWriteMotor(index, (float)value);
+void pwmShutdownPulsesForAllMotors(uint8_t motorCount) {
+    UNUSED(motorCount);
+    pwmMotorsEnabled = false;
 }
 
-static void pwmShutdownPulsesForAllMotors(void)
-{
-    motorPwmDevice.enabled = false;
-}
-
-bool pwmIsMotorEnabled(uint8_t index) {
-    return motors[index].enabled;
-}
-
-static void pwmCompleteMotorUpdate(void)
-{
+void pwmCompleteMotorUpdate(uint8_t motorCount) {
+    UNUSED(motorCount);
     // send to simulator
     // for gazebo8 ArduCopterPlugin remap, normal range = [0.0, 1.0], 3D rang = [-1.0, 1.0]
 
     double outScale = 1000.0;
-    if (featureIsEnabled(FEATURE_3D)) {
+    if (feature(FEATURE_3D)) {
         outScale = 500.0;
     }
 
@@ -475,53 +445,14 @@ static void pwmCompleteMotorUpdate(void)
     pwmPkt.motor_speed[1] = motorsPwm[2] / outScale;
     pwmPkt.motor_speed[2] = motorsPwm[3] / outScale;
 
-    // it needs to get one "fdm_packet" to send one "servo_packet"!!
+    // get one "fdm_packet" can only send one "servo_packet"!!
     if (pthread_mutex_trylock(&updateLock) != 0) return;
     udpSend(&pwmLink, &pwmPkt, sizeof(servo_packet));
-#if defined(SITL_DEBUG)
-    printf("[pwm]%u:%u,%u,%u,%u\n", idlePulse, motorsPwm[0], motorsPwm[1], motorsPwm[2], motorsPwm[3]);
-#endif
+//    printf("[pwm]%u:%u,%u,%u,%u\n", idlePulse, motorsPwm[0], motorsPwm[1], motorsPwm[2], motorsPwm[3]);
 }
 
 void pwmWriteServo(uint8_t index, float value) {
     servosPwm[index] = value;
-}
-
-static motorDevice_t motorPwmDevice = {
-    .vTable = {
-        .postInit = motorPostInitNull,
-        .convertExternalToMotor = pwmConvertFromExternal,
-        .convertMotorToExternal = pwmConvertToExternal,
-        .enable = pwmEnableMotors,
-        .disable = pwmDisableMotors,
-        .isMotorEnabled = pwmIsMotorEnabled,
-        .updateStart = motorUpdateStartNull,
-        .write = pwmWriteMotor,
-        .writeInt = pwmWriteMotorInt,
-        .updateComplete = pwmCompleteMotorUpdate,
-        .shutdown = pwmShutdownPulsesForAllMotors,
-    }
-};
-
-motorDevice_t *motorPwmDevInit(const motorDevConfig_t *motorConfig, uint16_t _idlePulse, uint8_t motorCount, bool useUnsyncedPwm)
-{
-    UNUSED(motorConfig);
-    UNUSED(useUnsyncedPwm);
-
-    if (motorCount > 4) {
-        return NULL;
-    }
-
-    idlePulse = _idlePulse;
-
-    for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
-        motors[motorIndex].enabled = true;
-    }
-    motorPwmDevice.count = motorCount; // Never used, but seemingly a right thing to set it anyways.
-    motorPwmDevice.initialized = true;
-    motorPwmDevice.enabled = false;
-
-    return &motorPwmDevice;
 }
 
 // ADC part
@@ -536,6 +467,7 @@ char _Min_Stack_Size;
 
 // fake EEPROM
 static FILE *eepromFd = NULL;
+uint8_t eepromData[EEPROM_SIZE];
 
 void FLASH_Unlock(void) {
     if (eepromFd != NULL) {
@@ -599,20 +531,14 @@ FLASH_Status FLASH_ProgramWord(uintptr_t addr, uint32_t value) {
     return FLASH_COMPLETE;
 }
 
-void IOConfigGPIO(IO_t io, ioConfig_t cfg)
+void uartPinConfigure(const serialPinConfig_t *pSerialPinConfig)
 {
-    UNUSED(io);
-    UNUSED(cfg);
-    printf("IOConfigGPIO\n");
+    UNUSED(pSerialPinConfig);
+    printf("uartPinConfigure");
 }
 
 void spektrumBind(rxConfig_t *rxConfig)
 {
     UNUSED(rxConfig);
-    printf("spektrumBind\n");
-}
-
-void unusedPinsInit(void)
-{
-    printf("unusedPinsInit\n");
+    printf("spektrumBind");
 }

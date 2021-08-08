@@ -1,5 +1,5 @@
 SITL_TARGETS += $(TARGET)
-FEATURES       += #SDCARD_SPI VCP
+#FEATURES       += SDCARD VCP
 
 TARGET_SRC = \
             drivers/accgyro/accgyro_fake.c \

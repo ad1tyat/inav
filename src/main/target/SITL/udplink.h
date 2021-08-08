@@ -8,11 +8,12 @@
 #ifndef __UDPLINK_H
 #define __UDPLINK_H
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +33,7 @@ int udpRecv(udpLink_t* link, void* data, size_t size, uint32_t timeout_ms);
 int udpSend(udpLink_t* link, const void* data, size_t size);
 
 #ifdef __cplusplus
-}  // extern "C"
+} // extern "C"
 #endif
 
 #endif

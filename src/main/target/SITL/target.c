@@ -29,6 +29,8 @@
 
 #include "common/maths.h"
 
+#include "drivers/vtx_common.h"
+
 #include "drivers/io.h"
 #include "drivers/dma.h"
 #include "drivers/serial.h"
@@ -48,7 +50,7 @@ const timerHardware_t timerHardware[1]; // unused
 #include "fc/config.h"
 #include "scheduler/scheduler.h"
 
-#include "pg/rx.h"
+// #include "pg/rx.h"
 
 #include "rx/rx.h"
 

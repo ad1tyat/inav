@@ -8,7 +8,8 @@
 #include <string.h>
 
 #include <fcntl.h>
-#include <sys/socket.h>
+#include "/usr/include/x86_64-linux-gnu/sys/socket.h"
+#include<sys/socket.h>
 
 #include "udplink.h"
 

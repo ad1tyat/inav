@@ -50,7 +50,11 @@ static inline fpQuaternion_t * quaternionInitFromVector(fpQuaternion_t * result,
 
 static inline void quaternionToAxisAngle(fpAxisAngle_t * result, const fpQuaternion_t * q)
 {
-    fpAxisAngle_t a = {.axis = {{1.0f, 0.0f, 0.0f}}};
+    fpAxisAngle_t a;
+    a.axis.x = 1.0f;
+    a.axis.y = 1.0f;
+    a.axis.z = 1.0f;
+    //  = {1.0f, 0.0f, 0.0f};
 
     a.angle = 2.0f * acos_approx(constrainf(q->q0, -1.0f, 1.0f));
 

@@ -44,7 +44,7 @@ typedef uint32_t timCCR_t;
 typedef uint32_t timCCER_t;
 typedef uint32_t timSR_t;
 typedef uint32_t timCNT_t;
-#elif defined(UNIT_TEST)
+#elif defined(UNIT_TEST) || defined(SIMULATOR_BUILD)
 typedef uint32_t timCCR_t;
 typedef uint32_t timCCER_t;
 typedef uint32_t timSR_t;
@@ -135,9 +135,13 @@ typedef struct timHardwareContext_s {
 #define HARDWARE_TIMER_DEFINITION_COUNT 14
 #elif defined(STM32F7)
 #define HARDWARE_TIMER_DEFINITION_COUNT 14
+#elif defined(SIMULATOR_BUILD)
+#define HARDWARE_TIMER_DEFINITION_COUNT 0
 #else
 #error "Unknown CPU defined"
 #endif
+
+// Need to actually find correct HARDWARE_TIMER_DEFINITION_COUNT for SITL
 
 // Per MCU timer definitions
 extern timHardwareContext_t * timerCtx[HARDWARE_TIMER_DEFINITION_COUNT];

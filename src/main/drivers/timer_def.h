@@ -69,7 +69,11 @@
     #include "timer_def_stm32f4xx.h"
 #elif defined(STM32F7)
     #include "timer_def_stm32f7xx.h"
+#elif defined(SITL)
+    #include "timer_def_sitlxx.h" 
 #else
     #error "Unknown CPU defined"
 #endif
+
+// Need to actually edit timer_def_sitlxx.h 
 

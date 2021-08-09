@@ -66,7 +66,8 @@ OBJECT_DIR      := $(ROOT)/obj/main
 BIN_DIR         := $(ROOT)/obj
 CMSIS_DIR       := $(ROOT)/lib/main/CMSIS
 INCLUDE_DIRS    := $(SRC_DIR) \
-                   $(ROOT)/src/main/target
+                   $(ROOT)/src/main/target \
+				   /usr/include/
 LINKER_DIR      := $(ROOT)/src/main/target/link
 
 # import macros common to all supported build systems

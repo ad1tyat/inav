@@ -80,24 +80,45 @@ uint8_t ledPolarity = 0
 
 static uint8_t ledOffset = 0;
 
-void ledInit(bool alternative_led)
-{
-#if defined(LED0_A) || defined(LED1_A) || defined(LED2_A)
-    if (alternative_led) {
-        ledOffset = LED_NUMBER;
-    }
-#else
-    UNUSED(alternative_led);
-#endif
+// void ledInit(bool alternative_led)
+// {
+// #if defined(LED0_A) || defined(LED1_A) || defined(LED2_A)
+//     if (alternative_led) {
+//         ledOffset = LED_NUMBER;
+//     }
+// #else
+//     UNUSED(alternative_led);
+// #endif
 
+//     LED0_OFF;
+//     LED1_OFF;
+//     LED2_OFF;
+
+//     for (int i = 0; i < LED_NUMBER; i++) {
+//         if (leds[i + ledOffset]) {
+//             IOInit(leds[i + ledOffset], OWNER_LED, RESOURCE_OUTPUT, RESOURCE_INDEX(i));
+//             IOConfigGPIO(leds[i + ledOffset], IOCFG_OUT_PP);
+//         }
+//     }
+
+//     LED0_OFF;
+//     LED1_OFF;
+//     LED2_OFF;
+// }
+void ledInit(const statusLedConfig_t *statusLedConfig)
+{
     LED0_OFF;
     LED1_OFF;
     LED2_OFF;
 
+    ledPolarity = statusLedConfig->polarity;
     for (int i = 0; i < LED_NUMBER; i++) {
-        if (leds[i + ledOffset]) {
-            IOInit(leds[i + ledOffset], OWNER_LED, RESOURCE_OUTPUT, RESOURCE_INDEX(i));
-            IOConfigGPIO(leds[i + ledOffset], IOCFG_OUT_PP);
+        if (statusLedConfig->ledTags[i]) {
+            leds[i] = IOGetByTag(statusLedConfig->ledTags[i]);
+            IOInit(leds[i], OWNER_LED, RESOURCE_INDEX(i));
+            IOConfigGPIO(leds[i], IOCFG_OUT_PP);
+        } else {
+            leds[i] = IO_NONE;
         }
     }
 
@@ -105,6 +126,7 @@ void ledInit(bool alternative_led)
     LED1_OFF;
     LED2_OFF;
 }
+
 
 void ledToggle(int led)
 {

@@ -19,6 +19,17 @@
 
 #define LED_NUMBER 3
 
+#include "config/parameter_group.h"
+#include "drivers/io_types.h"
+
+
+typedef struct statusLedConfig_s {
+    ioTag_t ledTags[LED_NUMBER];
+    uint8_t polarity;
+} statusLedConfig_t;
+
+PG_DECLARE(statusLedConfig_t, statusLedConfig);
+
 // Helpful macros
 #ifdef LED0
 # define LED0_TOGGLE              ledToggle(0)
@@ -50,6 +61,8 @@
 # define LED2_ON                  do {} while (0)
 #endif
 
-void ledInit(bool alternative_led);
+// void ledInit(bool alternative_led);
+
+void ledInit(const statusLedConfig_t *statusLedConfig);
 void ledToggle(int led);
 void ledSet(int led, bool state);

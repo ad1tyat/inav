@@ -42,7 +42,7 @@ typedef struct {
     uint8_t id;
 } tcpPort_t;
 
-serialPort_t *serTcpOpen(int id, serialReceiveCallbackPtr rxCallback, void *rxCallbackData, uint32_t baudRate, portMode_e mode, portOptions_e options);
+serialPort_t *serTcpOpen(int id, serialReceiveCallbackPtr rxCallback, void *rxCallbackData, uint32_t baudRate, portMode_t mode, portOptions_t options);
 
 // tcpPort API
 void tcpDataIn(tcpPort_t *instance, uint8_t* ch, int size);

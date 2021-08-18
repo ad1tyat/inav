@@ -15,7 +15,7 @@
 
 // #include "/usr/include/arpa/inet.h"
 // #include "/usr/include/features.h"
-#include <features.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 
 #ifdef __cplusplus

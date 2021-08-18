@@ -12,7 +12,10 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <arpa/inet.h>
+
+// #include "/usr/include/arpa/inet.h"
+// #include "/usr/include/features.h"
+#include <features.h>
 #include <netinet/in.h>
 
 #ifdef __cplusplus

@@ -22,7 +22,7 @@
 
 #include "drivers/light_led.h"
 
-static const IO_t leds[] = {
+static IO_t leds[] = {
 #ifdef LED0
     DEFIO_IO(LED0),
 #else
@@ -115,7 +115,7 @@ void ledInit(const statusLedConfig_t *statusLedConfig)
     for (int i = 0; i < LED_NUMBER; i++) {
         if (statusLedConfig->ledTags[i]) {
             leds[i] = IOGetByTag(statusLedConfig->ledTags[i]);
-            IOInit(leds[i], OWNER_LED, RESOURCE_INDEX(i));
+            IOInit(leds[i], OWNER_LED, RESOURCE_OUTPUT, RESOURCE_INDEX(i));
             IOConfigGPIO(leds[i], IOCFG_OUT_PP);
         } else {
             leds[i] = IO_NONE;

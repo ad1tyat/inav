@@ -45,43 +45,45 @@
 #define MULTISHOT_5US_PW    (MULTISHOT_TIMER_HZ * 5 / 1000000.0f)
 #define MULTISHOT_20US_MULT (MULTISHOT_TIMER_HZ * 20 / 1000000.0f / 1000.0f)
 
-#ifdef USE_DSHOT
-#define MOTOR_DSHOT1200_HZ    24000000
-#define MOTOR_DSHOT600_HZ     12000000
-#define MOTOR_DSHOT300_HZ     6000000
-#define MOTOR_DSHOT150_HZ     3000000
+// Moved to pwm_output.h
+// #ifdef USE_DSHOT
+// #define MOTOR_DSHOT1200_HZ    24000000
+// #define MOTOR_DSHOT600_HZ     12000000
+// #define MOTOR_DSHOT300_HZ     6000000
+// #define MOTOR_DSHOT150_HZ     3000000
 
 
-#define DSHOT_MOTOR_BIT_0       7
-#define DSHOT_MOTOR_BIT_1       14
-#define DSHOT_MOTOR_BITLENGTH   20
+// #define DSHOT_MOTOR_BIT_0       7
+// #define DSHOT_MOTOR_BIT_1       14
+// #define DSHOT_MOTOR_BITLENGTH   20
 
-#define DSHOT_DMA_BUFFER_SIZE   18 /* resolution + frame reset (2us) */
-#endif
+// #define DSHOT_DMA_BUFFER_SIZE   18 /* resolution + frame reset (2us) */
+// #endif
 
 typedef void (*pwmWriteFuncPtr)(uint8_t index, uint16_t value);  // function pointer used to write motors
 
-typedef struct {
-    TCH_t * tch;
-    bool configured;
-    uint16_t value;
+// Moved to pwm_output.h
+// typedef struct {
+//     TCH_t * tch;
+//     bool configured;
+//     uint16_t value;
 
-    // PWM parameters
-    volatile timCCR_t *ccr;         // Shortcut for timer CCR register
-    float pulseOffset;
-    float pulseScale;
+//     // PWM parameters
+//     volatile timCCR_t *ccr;         // Shortcut for timer CCR register
+//     float pulseOffset;
+//     float pulseScale;
 
-#ifdef USE_DSHOT
-    // DSHOT parameters
-    timerDMASafeType_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
-#endif
-} pwmOutputPort_t;
+// #ifdef USE_DSHOT
+//     // DSHOT parameters
+//     timerDMASafeType_t dmaBuffer[DSHOT_DMA_BUFFER_SIZE];
+// #endif
+// } pwmOutputPort_t;
 
-typedef struct {
-    pwmOutputPort_t *   pwmPort;        // May be NULL if motor doesn't use the PWM port
-    uint16_t            value;          // Used to keep track of last motor value
-    bool                requestTelemetry;
-} pwmOutputMotor_t;
+// typedef struct {
+//     pwmOutputPort_t *   pwmPort;        // May be NULL if motor doesn't use the PWM port
+//     uint16_t            value;          // Used to keep track of last motor value
+//     bool                requestTelemetry;
+// } pwmOutputMotor_t;
 
 static pwmOutputPort_t pwmOutputPorts[MAX_PWM_OUTPUT_PORTS];
 

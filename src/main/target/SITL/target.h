@@ -131,6 +131,9 @@
 #define WS2811_DMA_HANDLER_IDENTIFER 0
 
 
+// Number of available PWM outputs !! Change this
+#define MAX_PWM_OUTPUT_PORTS    16
+
 // belows are internal stuff
 #include <stdint.h>
 #include <stddef.h>

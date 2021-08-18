@@ -45,7 +45,8 @@
 #endif
 
 #define USE_ADC_AVERAGING
-#define USE_64BIT_TIME
+// Removing 64 bit time for now
+// #define USE_64BIT_TIME
 #define USE_BLACKBOX
 #define USE_GPS
 #define USE_GPS_PROTO_UBLOX

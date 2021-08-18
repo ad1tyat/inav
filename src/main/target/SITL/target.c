@@ -34,6 +34,8 @@
 #include "drivers/pwm_output.h"
 #include "drivers/light_led.h"
 
+#include "flight/servos.h"
+
 #include "drivers/timer.h"
 #include "drivers/timer_def.h"
 const timerHardware_t timerHardware[1]; // unused
@@ -378,14 +380,14 @@ void motorDevInit(const motorDevConfig_t *motorConfig, uint16_t _idlePulse, uint
 	idlePulse = _idlePulse;
 
 	for (int motorIndex = 0; motorIndex < MAX_SUPPORTED_MOTORS && motorIndex < motorCount; motorIndex++) {
-		motors[motorIndex].enabled = true;
+		motors[motorIndex].configured = true; // Equivalent for .enabled is .configured ??
 	}
 	pwmMotorsEnabled = true;
 }
 void servoDevInit(const servoDevConfig_t *servoConfig) {
 	UNUSED(servoConfig);
 	for (uint8_t servoIndex = 0; servoIndex < MAX_SUPPORTED_SERVOS; servoIndex++) {
-		servos[servoIndex].enabled = true;
+		servos[servoIndex].configured = true; // Equivalent for .enabled is .configured ??
 	}
 }
 
@@ -402,7 +404,8 @@ void pwmShutdownPulsesForAllMotors(uint8_t motorCount) {
 	UNUSED(motorCount);
 	pwmMotorsEnabled = false;
 }
-void pwmCompleteMotorUpdate(uint8_t motorCount) {
+void pwmCompleteMotorUpdate(void) {
+	uint8_t motorCount = 8; // TODO : SET THIS LATER
 	UNUSED(motorCount);
 	// send to simulator
 	// for gazebo8 ArduCopterPlugin remap, normal range = [0.0, 1.0], 3D rang = [-1.0, 1.0]

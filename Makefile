@@ -66,8 +66,7 @@ OBJECT_DIR      := $(ROOT)/obj/main
 BIN_DIR         := $(ROOT)/obj
 CMSIS_DIR       := $(ROOT)/lib/main/CMSIS
 INCLUDE_DIRS    := $(SRC_DIR) \
-                   $(ROOT)/src/main/target \
-				   /usr/include
+                   $(ROOT)/src/main/target
 
 LINKER_DIR      := $(ROOT)/src/main/target/link
 
@@ -264,6 +263,7 @@ ASFLAGS     = $(ARCH_FLAGS) \
               -D$(TARGET) \
               -MMD -MP
 
+ifeq ($(LD_FLAGS),)
 LDFLAGS     = -lm \
               -nostartfiles \
               --specs=nano.specs \
@@ -279,6 +279,7 @@ LDFLAGS     = -lm \
               -Wl,--no-wchar-size-warning \
               -Wl,--print-memory-usage \
               -T$(LD_SCRIPT)
+endif
 
 ###############################################################################
 # No user-serviceable parts below
@@ -532,6 +533,8 @@ test:
 # so they will be generated before TARGET_OBJS but regenerating them
 # won't cause all TARGET_OBJS to be rebuilt.
 $(TARGET_OBJS) : Makefile | $(GENERATED_FILES) $(STAMP)
+
+# $(error $$TARGET_DEPS is [${TARGET_DEPS}])
 
 # include auto-generated dependencies
 -include $(TARGET_DEPS)

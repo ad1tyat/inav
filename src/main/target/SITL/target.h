@@ -138,6 +138,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "../CMSIS/Core/Include/cmsis_gcc.h"
+
 uint32_t SystemCoreClock;
 
 #define UNUSED(x) (void)(x)

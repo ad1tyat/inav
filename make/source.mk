@@ -231,6 +231,8 @@ TARGET_SRC := $(STARTUP_SRC) $(COMMON_DEVICE_SRC) $(COMMON_SRC) $(MCU_COMMON_SRC
 #excludes
 TARGET_SRC   := $(filter-out $(MCU_EXCLUDES), $(TARGET_SRC))
 
+# $(error $$MCU_EXCLUDES is [${MCU_EXCLUDES}])
+
 ifneq ($(filter ONBOARDFLASH,$(FEATURES)),)
 TARGET_SRC += \
             drivers/flash_m25p16.c \

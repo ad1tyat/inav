@@ -11,7 +11,7 @@ LD_SCRIPT       = src/main/target/SITL/parameter_group.ld
 STARTUP_SRC     =
 
 TARGET_FLAGS    = -D$(TARGET)
-MCU_FLASH_SIZE  := 2048
+TARGET_FLASH   := 2048
 
 ARM_SDK_PREFIX  =
 
@@ -37,7 +37,8 @@ MCU_EXCLUDES = \
             telemetry/crsf.c \
             telemetry/ghst.c \
             telemetry/srxl.c \
-            io/displayport_oled.c
+            io/displayport_oled.c\
+            drivers/pitotmeter_ms4525.c
 
 TARGET_MAP  = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
 
@@ -58,21 +59,6 @@ ifneq ($(filter SITL_STATIC,$(OPTIONS)),)
 LD_FLAGS     += \
               -static \
               -static-libgcc
-endif
-
-
-
-ifeq ($(TARGET),$(filter $(TARGET), $(F411_TARGETS)))
-EXCLUDES        += stm32f4xx_fsmc.c
-TARGET_FLASH    := 512
-else ifeq ($(TARGET),$(filter $(TARGET), $(F446_TARGETS)))
-EXCLUDES        += stm32f4xx_fsmc.c
-TARGET_FLASH    := 512
-else ifeq ($(TARGET),$(filter $(TARGET), $(F427_TARGETS)))
-EXCLUDES        += stm32f4xx_fsmc.c
-TARGET_FLASH    := 1024
-else ifeq ($(TARGET),$(filter $(TARGET), $(SITL_TARGETS)))
-TARGET_FLASH    := 2048
 endif
 
 ifneq ($(DEBUG),GDB)

@@ -38,7 +38,8 @@ MCU_EXCLUDES = \
             telemetry/ghst.c \
             telemetry/srxl.c \
             io/displayport_oled.c\
-            drivers/pitotmeter_ms4525.c
+            drivers/pitotmeter_ms4525.c\
+            drivers/light_led.c
 
 TARGET_MAP  = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
 

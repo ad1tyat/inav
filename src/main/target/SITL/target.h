@@ -140,7 +140,7 @@
 
 #include "../CMSIS/Core/Include/cmsis_gcc.h"
 
-uint32_t SystemCoreClock;
+extern uint32_t SystemCoreClock;
 
 #define UNUSED(x) (void)(x)
 
